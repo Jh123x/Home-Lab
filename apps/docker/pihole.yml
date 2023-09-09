@@ -1,0 +1,29 @@
+---
+- name: Setup Pi Hole
+  hosts: home.localdomain
+  tasks:
+    - name: Create pi hole docker container
+      community.docker.docker_container:
+        name: pihole
+        state: started
+        image: pihole/pihole:latest
+        hostname: pihole.localdomain
+        env:
+          TZ: "Asia/Singapore"
+          GID: "1000"
+          UID: "1000"
+        interactive: true
+        networks:
+          - name: traefik-proxy
+        volumes:
+          - /home/pi_hole/pi_hole:/etc/pihole
+          - /home/pi_hole/dnsmasq.d:/etc/dnsmasq.d
+        ports:
+          - "53:53/tcp"
+          - "53:53/udp"
+        restart_policy: "unless-stopped"
+        labels:
+          traefik.enable: "true"
+          traefik.http.services.pihole.loadbalancer.server.port: "80"
+          traefik.http.routers.pihole.rule: Host(`pihole.localdomain`)
+          traefik.http.routers.pihole.tls: "true"

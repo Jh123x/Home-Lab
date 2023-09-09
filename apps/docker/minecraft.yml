@@ -1,0 +1,19 @@
+---
+- hosts: minecraft
+  gather_facts: true
+  tasks:
+
+    - name: Update minecraft docker container
+      community.docker.docker_container:
+        name: mcserver
+        state: started
+        image: marctv/minecraft-papermc-server:latest
+        env:
+          MEMORYSIZE: "6G"
+        interactive: true
+        volumes:
+          - /home/minecraft:/data
+        pull: true
+        ports:
+          - 25565:25565
+        restart_policy: "unless-stopped"

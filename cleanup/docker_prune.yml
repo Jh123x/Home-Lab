@@ -1,0 +1,10 @@
+---
+- name: Prune all docker containers
+  hosts: all
+  tasks:
+    - name: Prune all
+      community.docker.docker_prune:
+        containers: true
+        images: true
+        networks: true
+        volumes: true

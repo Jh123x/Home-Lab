@@ -1,0 +1,50 @@
+---
+- name: "Install Docker"
+  hosts: all
+  become: true
+  vars:
+    user: "jh123x"
+  tasks:
+    - name: Update all installed packages using APT module
+      apt:
+        name: '*'
+        state: latest
+        update_cache: yes
+        only_upgrade: yes
+      register: apt_update_status
+
+    - name: Remove packages not needed anymore
+      apt:
+        autoremove: yes
+
+    - name: Reboot when packages were updated
+      reboot:
+        post_reboot_delay: 60
+      when: apt_update_status.changed
+
+    - name: Add Docker GPG apt Key
+      apt_key:
+         url: https://download.docker.com/linux/ubuntu/gpg
+         state: present
+
+    - name: set the stable repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }} stable
+
+    - name: Update apt and install docker-ce
+      apt:
+        name: docker-ce
+        state: latest
+        update_cache: true
+
+    - name: Add docker to group
+      ansible.builtin.group:
+        name: docker
+        state: present
+
+    - name: Add current user to docker group
+      ansible.builtin.user:
+        name: "{{ user }}"
+        append: true
+        groups: docker
+

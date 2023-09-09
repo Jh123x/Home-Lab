@@ -1,0 +1,24 @@
+---
+- name: Portainer
+  hosts: home.localdomain
+  gather_facts: true
+  tasks:
+
+    - name: Create portainer container
+      community.docker.docker_container:
+        name: portainer
+        state: started
+        image: portainer/portainer-ce:latest
+        volumes:
+          - /home/portainer:/data
+          - /var/run/docker.sock:/var/run/docker.sock
+        pull: true
+        networks:
+          - name: traefik-proxy
+        restart_policy: "unless-stopped"
+        labels:
+          traefik.enable: "true"
+          traefik.http.services.portainer.loadbalancer.server.port: "9000"
+          traefik.http.routers.portainer.rule: Host(`portainer.localdomain`)
+          traefik.http.routers.portainer.tls: "true"
+

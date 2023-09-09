@@ -1,0 +1,26 @@
+---
+- name: Traefik
+  hosts: home.localdomain
+  gather_facts: true
+  tasks:
+    - name: Create/Restart Container
+      community.docker.docker_container:
+        name: traefik
+        state: started
+        image: traefik:latest
+        volumes:
+          - /etc/localtime:/etc/localtime:ro
+          - /home/traefik/data/traefik.yml:/traefik.yml:ro
+          - /var/run/docker.sock:/var/run/docker.sock:ro
+        pull: true
+        networks:
+          - name: traefik-proxy
+        ports:
+          - 80:80
+          - 443:443
+        restart_policy: "unless-stopped"
+        labels:
+          traefik.enable: "true"
+          traefik.http.services.traefik.loadbalancer.server.port: "8080"
+          traefik.http.routers.traefik.rule: Host(`traefik-dashboard.localdomain`)
+          traefik.http.routers.traefik.tls: "true"

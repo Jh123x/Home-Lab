@@ -1,0 +1,23 @@
+---
+- name: Uptime Kuma
+  hosts: home.localdomain
+  tasks:
+    - name: Create/Restart Container
+      community.docker.docker_container:
+        name: uptime-kuma
+        state: started
+        image: louislam/uptime-kuma:latest
+        volumes:
+          - /home/uptime_kuma:/app/data
+        pull: true
+        dns_servers:
+          - "172.20.0.2"
+        networks:
+          - name: traefik-proxy
+        restart_policy: "unless-stopped"
+        labels:
+          traefik.enable: "true"
+          traefik.http.services.uptime-kuma.loadbalancer.server.port: "3001"
+          traefik.http.routers.uptime-kuma-http.rule: Host(`uptime-kuma.localdomain`)
+          traefik.http.routers.uptime-kuma-http.tls: "true"
+          
